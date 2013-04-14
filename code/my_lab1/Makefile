@@ -147,11 +147,6 @@ bootfiles = $(call listf_cc,boot)
 $(foreach f,$(bootfiles),$(call cc_compile,$(f),$(CC),$(CFLAGS) -Os -nostdinc))
 
 bootblock = $(call totarget,bootblock)
-abcd:
-	@echo $(bootblock)
-	@echo $(LDFLAGS)
-	@echo $(call toobj,bootblock)
-	@echo $(call asmfile,bootblock)
 
 $(bootblock): $(call toobj,$(bootfiles)) | $(call totarget,sign)
 	@echo + ld $@
@@ -168,16 +163,6 @@ $(call create_target,bootblock)
 $(call add_files_host,tools/sign.c,sign,sign)
 $(call create_target_host,sign,sign)
 
-a: $(bootblock)
-	@echo $(bootblock)
-	@echo $(call outfile,bootblock)
-	@echo $(call objfile,bootblock) $(call asmfile,bootblock)
-	@echo $(GCCPREFX), $(GCCPREFIX),$(V)
-	@echo $(call toobj,bootblock)
-	@echo $(LDFLAGS)
-	@echo $(CFLAGS)
-	@echo $(TERMINAL)
-	@echo $(V)
 # -------------------------------------------------------------------
 
 # create ucore.img
@@ -213,23 +198,20 @@ TARGETS: $(TARGETS)
 
 .PHONY: qemu qemu-nox debug debug-nox
 qemu: $(UCOREIMG)
-	$(V)$(QEMU) -hda $< -parallel stdio
+	$(V)$(QEMU) -parallel stdio -hda $< -serial null
 
 qemu-nox: $(UCOREIMG)
-	$(V)$(QEMU) -serial mon:stdio -parallel stdio -serial stdio -hda $< -nographic
+	$(V)$(QEMU) -serial mon:stdio -hda $< -nographic
 TERMINAL        :=gnome-terminal
 debug: $(UCOREIMG)
 	$(V)$(QEMU) -S -s -parallel stdio -hda $< -serial null &
 	$(V)sleep 2
 	$(V)$(TERMINAL) -e "gdb -q -x tools/gdbinit"
-
+	
 debug-nox: $(UCOREIMG)
 	$(V)$(QEMU) -S -s -serial mon:stdio -hda $< -nographic &
-#	$(V)sleep 5
-#	$(V)$(TERMINAL) -e "gdb -q -x tools/gdbinit"
-
-hello: $(UCOREIMG)
-	@echo "hello"
+	$(V)sleep 2
+	$(V)$(TERMINAL) -e "gdb -q -x tools/gdbinit"
 
 .PHONY: grade touch
 
