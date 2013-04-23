@@ -10,7 +10,6 @@
 #include <kdebug.h>
 
 #define TICK_NUM 100
-uint8_t stack3[1024]; //定义用户堆栈
 
 static void print_ticks() {
     cprintf("%d ticks\n",TICK_NUM);
@@ -141,12 +140,10 @@ print_regs(struct pushregs *regs) {
     cprintf("  ecx  0x%08x\n", regs->reg_ecx);
     cprintf("  eax  0x%08x\n", regs->reg_eax);
 }
-
 /* trap_dispatch - dispatch based on what type of trap occurred */
 static void
 trap_dispatch(struct trapframe *tf) {
     char c;
-    uint32_t addrStack3;
     switch (tf->tf_trapno) {
     case IRQ_OFFSET + IRQ_TIMER:
         /* LAB1 YOUR CODE : STEP 3 */
@@ -171,19 +168,20 @@ trap_dispatch(struct trapframe *tf) {
         break;
     //LAB1 CHALLENGE 1 : YOUR CODE you should modify below codes.
     case T_SWITCH_TOU:
-        addrStack3=(uint32_t)&stack3+sizeof(stack3);
         /*
          * 注意此处的压栈顺序
          */
         asm volatile(
-              "pushl %%ebx;"
               "pushl %%eax;"
-              "pushl label;"
+              "pushl %%esp;"
+              "addl $0x4,(%%esp);"
               "pushl %%ecx;"
+              "pushl $label;"
               "lret;"
-              "label:nop;"
+              "label: movl %%eax,%%ds;"
+              "movl %%eax,%%es;"
               :
-              :"a" (USER_DS),"b" (addrStack3),"c" (USER_CS)
+              :"a" (USER_DS),"c" (USER_CS)
               );
         break;
     case T_SWITCH_TOK:
@@ -199,6 +197,7 @@ trap_dispatch(struct trapframe *tf) {
             print_trapframe(tf);
             panic("unexpected trap in kernel.\n");
         }
+        break;
     }
 }
 
