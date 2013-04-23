@@ -172,14 +172,11 @@ trap_dispatch(struct trapframe *tf) {
     //LAB1 CHALLENGE 1 : YOUR CODE you should modify below codes.
     case T_SWITCH_TOU:
         addrStack3=(uint32_t)&stack3+sizeof(stack3);
-        /*
-         * 注意此处的压栈顺序
-         */
         asm volatile(
-              "pushl %%ebx;"
               "pushl %%eax;"
-              "pushl label;"
+              "pushl %%ebx;"
               "pushl %%ecx;"
+              "pushl label;"
               "lret;"
               "label:nop;"
               :
