@@ -252,7 +252,8 @@ print_debuginfo(uintptr_t eip) {
  */
 static __noinline uint32_t read_ss_mem(uint32_t pos){
   uint32_t mem;
-  asm volatile("movl %%ss:(%%edx), %0": "=r" (mem) :"d" (pos): );
+  //asm volatile("movl %%ss:(%%edx), %0": "=r" (mem) :"d" (pos): );
+  mem=*(int *)pos;
   return mem;
 }
 static __noinline uint32_t
@@ -313,11 +314,12 @@ print_stackframe(void) {
   int deep=0;
   uint32_t eip;
   uint32_t ebp;
+  //此时栈中存在3个局部变量变量，上层ebp的位置应该是esp+12
   eip=read_eip(); //读取当前的ip
   ebp=read_ebp(); //读取当前的bp
   do{
     cprintf("ebp:0x%08x eip:0x%08x args:0x%08x 0x%08x 0x%08x 0x%08x",ebp,eip,
-          read_ss_mem(ebp+8),read_ss_mem(ebp+12),read_ss_mem(ebp+16),read_ss_mem(ebp+20));
+          *((int *)(ebp+8)),read_ss_mem(ebp+12),read_ss_mem(ebp+16),read_ss_mem(ebp+20));
     //打印信息
     cprintf("\n");
     print_debuginfo(eip-1);
