@@ -41,9 +41,6 @@ waitdisk(void) {
 }
 
 /* readsect - read a single sector at @secno into @dst */
-/*
- * 读取一个扇区内容到dst中
- */
 static void
 readsect(void *dst, uint32_t secno) {
     // wait for disk to be ready
@@ -67,10 +64,6 @@ readsect(void *dst, uint32_t secno) {
  * readseg - read @count bytes at @offset from kernel into virtual address @va,
  * might copy more than asked.
  * */
-/*
- * 从硬盘offset开始处读取一个count字节的数据到va开始的虚拟地址空间
- */
-
 static void
 readseg(uintptr_t va, uint32_t count, uint32_t offset) {
     uintptr_t end_va = va + count;

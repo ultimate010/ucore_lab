@@ -46,11 +46,11 @@ idt_init(void) {
       *     You don't know the meaning of this instruction? just google it! and check the libs/x86.h to know more.
       *     Notice: the argument of lidt is idt_pd. try to find it!
       */
-    extern uintptr_t    __vectors[];
-    unsigned char i=0;
-    for(i=0;i!=255;i++){
-      SETGATE(idt[i],0,KERNEL_CS,__vectors[i],DPL_KERNEL);
-    }
+      extern uintptr_t    __vectors[];
+      unsigned char i=0;
+      for(i=0;i!=255;i++){
+        SETGATE(idt[i],0,KERNEL_CS,__vectors[i],DPL_KERNEL);
+      }
       SETGATE(idt[0x30],1,KERNEL_CS,__vectors[0x30],DPL_USER);
       lidt(&idt_pd);
 }
@@ -140,10 +140,12 @@ print_regs(struct pushregs *regs) {
     cprintf("  ecx  0x%08x\n", regs->reg_ecx);
     cprintf("  eax  0x%08x\n", regs->reg_eax);
 }
+
 /* trap_dispatch - dispatch based on what type of trap occurred */
 static void
 trap_dispatch(struct trapframe *tf) {
     char c;
+
     switch (tf->tf_trapno) {
     case IRQ_OFFSET + IRQ_TIMER:
         /* LAB1 YOUR CODE : STEP 3 */
@@ -168,26 +170,11 @@ trap_dispatch(struct trapframe *tf) {
         break;
     //LAB1 CHALLENGE 1 : YOUR CODE you should modify below codes.
     case T_SWITCH_TOU:
-        /*
-         * 注意此处的压栈顺序
-         */
-        asm volatile(
-              "pushl %%eax;"
-              "pushl %%esp;"
-              "addl $0x4,(%%esp);"
-              "pushl %%ecx;"
-              "pushl $label;"
-              "lret;"
-              "label: movl %%eax,%%ds;"
-              "movl %%eax,%%es;"
-              :
-              :"a" (USER_DS),"c" (USER_CS)
-              );
-        break;
     case T_SWITCH_TOK:
         panic("T_SWITCH_** ??\n");
         break;
     case IRQ_OFFSET + IRQ_IDE1:
+        break;
     case IRQ_OFFSET + IRQ_IDE2:
         /* do nothing */
         break;

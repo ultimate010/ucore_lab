@@ -305,5 +305,22 @@ print_stackframe(void) {
       *           NOTICE: the calling funciton's return addr eip  = ss:[ebp+4]
       *                   the calling funciton's ebp = ss:[ebp]
       */
+  int deep=0;
+  uint32_t eip;
+  uint32_t ebp;
+  //此时栈中存在3个局部变量变量，上层ebp的位置应该是esp+12
+  eip=read_eip(); //读取当前的ip
+  ebp=read_ebp(); //读取当前的bp
+  do{
+    cprintf("ebp:0x%08x eip:0x%08x args:0x%08x 0x%08x 0x%08x 0x%08x",ebp,eip,
+          *((int *)(ebp+8)),*((int *)(ebp+12)),*((int *)(ebp+16)),*((int *)(ebp+20)));
+    //打印信息
+    cprintf("\n");
+    print_debuginfo(eip-1);
+    ebp=*((int *)(ebp)); //读取上一级的bp
+    eip=*((int *)(ebp+4)); //读取上一级的ip
+    //getchar(); //暂停在这儿
+    deep++;
+  }while(deep<STACKFRAME_DEPTH&&ebp!=0x0);
 }
 
