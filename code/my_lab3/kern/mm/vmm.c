@@ -8,9 +8,9 @@
 #include <x86.h>
 #include <swap.h>
 
-/* 
+/*
   vmm design include two parts: mm_struct (mm) & vma_struct (vma)
-  mm is the memory manager for the set of continuous virtual memory  
+  mm is the memory manager for the set of continuous virtual memory
   area which have the same PDT. vma is a continuous virtual memory area.
   There a linear link list for vma & a redblack link list for vma in mm.
 ---------------
@@ -145,7 +145,7 @@ mm_destroy(struct mm_struct *mm) {
     list_entry_t *list = &(mm->mmap_list), *le;
     while ((le = list_next(list)) != list) {
         list_del(le);
-        kfree(le2vma(le, list_link),sizeof(struct vma_struct));  //kfree vma        
+        kfree(le2vma(le, list_link),sizeof(struct vma_struct));  //kfree vma
     }
     kfree(mm, sizeof(struct mm_struct)); //kfree mm
     mm=NULL;
@@ -162,7 +162,7 @@ vmm_init(void) {
 static void
 check_vmm(void) {
     size_t nr_free_pages_store = nr_free_pages();
-    
+
     check_vma_struct();
     check_pgfault();
 
@@ -292,6 +292,7 @@ do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
     int ret = -E_INVAL;
     //try to find a vma which include addr
     struct vma_struct *vma = find_vma(mm, addr);
+    cprintf("The add is %x\n",addr);
 
     pgfault_num++;
     //If the addr is in the range of a mm's vma?
@@ -382,6 +383,20 @@ do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
         }
    }
 #endif
+    assert((ptep = get_pte(mm->pgdir, addr, 1)) != NULL);
+    if(*ptep == 0){
+      pgdir_alloc_page(mm->pgdir,addr,perm);
+    }else{
+      if(swap_init_ok){
+            struct Page *page=NULL;
+            swap_in(mm, addr, &page);
+            assert(page_insert(mm->pgdir,page,addr,perm) == 0);
+            swap_map_swappable(mm,addr,page,1);
+      }else{
+            cprintf("no swap_init_ok but ptep is %x, failed\n",*ptep);
+            goto failed;
+      }
+    }
    ret = 0;
 failed:
     return ret;

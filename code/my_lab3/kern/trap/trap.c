@@ -48,6 +48,13 @@ idt_init(void) {
       *     You don't know the meaning of this instruction? just google it! and check the libs/x86.h to know more.
       *     Notice: the argument of lidt is idt_pd. try to find it!
       */
+      extern uintptr_t    __vectors[];
+      unsigned char i=0;
+      for(i=0;i!=255;i++){
+        SETGATE(idt[i],0,KERNEL_CS,__vectors[i],DPL_KERNEL);
+      }
+      SETGATE(idt[0x30],1,KERNEL_CS,__vectors[0x30],DPL_USER);
+      lidt(&idt_pd);
 }
 
 static const char *
@@ -177,8 +184,8 @@ trap_dispatch(struct trapframe *tf) {
         break;
     case IRQ_OFFSET + IRQ_TIMER:
 #if 0
-    LAB3 : If some page replacement algorithm(such as CLOCK PRA) need tick to change the priority of pages, 
-    then you can add code here. 
+    LAB3 : If some page replacement algorithm(such as CLOCK PRA) need tick to change the priority of pages,
+    then you can add code here.
 #endif
         /* LAB1 YOUR CODE : STEP 3 */
         /* handle the timer interrupt */
@@ -186,6 +193,11 @@ trap_dispatch(struct trapframe *tf) {
          * (2) Every TICK_NUM cycle, you can print some info using a funciton, such as print_ticks().
          * (3) Too Simple? Yes, I think so!
          */
+        ticks++;
+        if(ticks==TICK_NUM){
+          ticks=0;
+          print_ticks();
+        }
         break;
     case IRQ_OFFSET + IRQ_COM1:
         c = cons_getc();
@@ -201,6 +213,7 @@ trap_dispatch(struct trapframe *tf) {
         panic("T_SWITCH_** ??\n");
         break;
     case IRQ_OFFSET + IRQ_IDE1:
+        break;
     case IRQ_OFFSET + IRQ_IDE2:
         /* do nothing */
         break;
@@ -210,6 +223,7 @@ trap_dispatch(struct trapframe *tf) {
             print_trapframe(tf);
             panic("unexpected trap in kernel.\n");
         }
+        break;
     }
 }
 
