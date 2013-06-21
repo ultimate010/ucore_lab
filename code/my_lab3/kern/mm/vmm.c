@@ -292,7 +292,6 @@ do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
     int ret = -E_INVAL;
     //try to find a vma which include addr
     struct vma_struct *vma = find_vma(mm, addr);
-    cprintf("The add is %x\n",addr);
 
     pgfault_num++;
     //If the addr is in the range of a mm's vma?
