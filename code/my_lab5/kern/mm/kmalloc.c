@@ -52,7 +52,7 @@ typedef unsigned int gfp_t;
 #endif
 
 #ifndef ALIGN
-#define ALIGN(addr,size)   (((addr)+(size)-1)&(~((size)-1))) 
+#define ALIGN(addr,size)   (((addr)+(size)-1)&(~((size)-1)))
 #endif
 
 
@@ -187,7 +187,7 @@ static void slob_free(void *block, int size)
 
 
 void check_slob(void) {
-  cprintf("check_slob() success\n");
+  cprintf("check_slob() succeeded!\n");
 }
 
 void
@@ -196,7 +196,7 @@ slob_init(void) {
   check_slob();
 }
 
-inline void 
+inline void
 kmalloc_init(void) {
     slob_init();
     cprintf("kmalloc_init() succeeded!\n");
